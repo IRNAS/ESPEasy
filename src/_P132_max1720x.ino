@@ -81,10 +81,19 @@ boolean Plugin_132(byte function, struct EventStruct *event, String& string)
         UserVar[event->BaseVarIndex + 1] = PLUGIN_132_gauge.getCurrent();
         UserVar[event->BaseVarIndex + 2] = PLUGIN_132_gauge.getTemperature();
         UserVar[event->BaseVarIndex + 3] = PLUGIN_132_gauge.getSOC();
-        String log = F("max1720x read ");
-        //log += value;
-        addLog(LOG_LEVEL_INFO,log);
-        success = true;
+
+        if(PLUGIN_132_gauge.getError() == 0){
+          success = true;
+          String log = F("Voltage: ");
+          log += String(UserVar[event->BaseVarIndex],DEC);
+          log += F(": Current: ");
+          log += String(UserVar[event->BaseVarIndex+1],DEC);
+          addLog(LOG_LEVEL_INFO,log);
+        }
+        else
+        {
+          addLog(LOG_LEVEL_ERROR, F("max1720x: i2c error"));
+        }
         break;
       }
   }
