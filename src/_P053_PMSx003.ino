@@ -8,7 +8,7 @@
 // togther with a laser, count the amount of particles. These sensors have an integrated microcontroller
 // that counts particles and transmits measurement data over the serial connection.
 
-#ifdef PLUGIN_BUILD_TESTING
+//#ifdef PLUGIN_BUILD_TESTING
 
 #define PLUGIN_053
 #define PLUGIN_ID_053 53
@@ -205,4 +205,4 @@ boolean Plugin_053(byte function, struct EventStruct *event, String& string)
   }
   return success;
 }
-#endif // PLUGIN_BUILD_TESTING
+//#endif // PLUGIN_BUILD_TESTING
