@@ -28,6 +28,7 @@ void WebServerInit()
   WebServer.on("/rules", handle_rules);
   WebServer.on("/sysinfo", handle_sysinfo);
   WebServer.on("/pinstates", handle_pinstates);
+  WebServer.on("/pira", handle_pira);
 
   if (ESP.getFlashChipRealSize() > 524288)
     httpUpdater.setup(&WebServer);
@@ -236,7 +237,7 @@ void getWebPageTemplateVar(const String& varName, String& varValue)
 
   else if (varName == F("menu"))
   {
-    static const __FlashStringHelper* gpMenu[8][2] = {
+    static const __FlashStringHelper* gpMenu[9][2] = {
       F("Main"), F("."),                      //0
       F("Config"), F("config"),               //1
       F("Controllers"), F("controllers"),     //2
@@ -245,11 +246,12 @@ void getWebPageTemplateVar(const String& varName, String& varValue)
       F("Rules"), F("rules"),                 //5
       F("Notifications"), F("notifications"), //6
       F("Tools"), F("tools"),                 //7
+      F("PiRA"), F("pira"),                 //7
     };
 
     varValue += F("<div class='menubar'>");
 
-    for (byte i = 0; i < 8; i++)
+    for (byte i = 0; i < 9; i++)
     {
       if (i == 5 && !Settings.UseRules)   //hide rules menu item
         continue;
@@ -3816,6 +3818,82 @@ void handle_sysinfo() {
   reply += F("</table></form>");
   addFooter(reply);
   sendWebPage(F("TmplStd"), reply);
+}
+
+//********************************************************************************
+// Web Interface debug page
+//********************************************************************************
+void handle_pira() {
+  if (!isLoggedIn()) return;
+
+  navMenuIndex = 8;
+  String webrequest = WebServer.arg(F("cmd"));
+
+  String reply = "";
+  addHeader(true, reply);
+
+PSTR("<TR><TD>mDNS:<TD><a href='http://%s_%u.local'>%s_%u.local</a>"),
+  reply += F("<form>");
+  reply += F("<table>");
+
+  addFormHeader(reply, F("PiRA IoT battery pack"));
+  reply += F("<TR><TD>PiRA IoT battery pack by <a href='http://irnas.eu/projects'> Institue IRNAS</a>");
+
+  addFormSubHeader(reply, F("Output channels"));
+
+  reply += F("<TR><TD HEIGHT=\"30\">");
+  addButton(reply, F("/control?cmd=GPIO,15,1,"), F("CH2 enable"));
+  reply += F("<TD>");
+  reply += F("Channel 2, typically 5V output");
+
+  reply += F("<TR><TD HEIGHT=\"30\">");
+  addButton(reply, F("/control?cmd=GPIO,15,0,"), F("CH2 disable"));
+  reply += F("<TD>");
+  reply += F("Channel 2, typically 5V output");
+
+  reply += F("<TR><TD HEIGHT=\"30\">");
+  addButton(reply, F("/control?cmd=GPIO,12,1,"), F("CH3 enable"));
+  reply += F("<TD>");
+  reply += F("Channel 2, typically Vbat output");
+
+  reply += F("<TR><TD HEIGHT=\"30\">");
+  addButton(reply, F("/control?cmd=GPIO,12,0,"), F("CH3 disable"));
+  reply += F("<TD>");
+  reply += F("Channel 2, typically Vbat output");
+
+  reply += F("<TR><TD HEIGHT=\"30\">");
+  addButton(reply, F("/control?cmd=GPIO,14,1,"), F("CH4 enable"));
+  reply += F("<TD>");
+  reply += F("Channel 2, typically 24V output");
+
+  reply += F("<TR><TD HEIGHT=\"30\">");
+  addButton(reply, F("/control?cmd=GPIO,14,0,"), F("CH4 disable"));
+  reply += F("<TD>");
+  reply += F("Channel 2, typically 24V output");
+
+  printToWeb = true;
+  printWebString = "";
+
+  if (webrequest.length() > 0)
+  {
+    struct EventStruct TempEvent;
+    parseCommandString(&TempEvent, webrequest);
+    TempEvent.Source = VALUE_SOURCE_HTTP;
+    if (!PluginCall(PLUGIN_WRITE, &TempEvent, webrequest))
+      ExecuteCommand(VALUE_SOURCE_HTTP, webrequest.c_str());
+  }
+
+  if (printWebString.length() > 0)
+  {
+    reply += F("<TR><TD>Command Output<TD><textarea readonly rows='10' cols='60' wrap='on'>");
+    reply += printWebString;
+    reply += F("</textarea>");
+  }
+  reply += F("</table></form>");
+  addFooter(reply);
+  sendWebPage(F("TmplStd"), reply);
+  printWebString = "";
+  printToWeb = false;
 }
 
 
