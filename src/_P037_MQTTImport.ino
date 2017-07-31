@@ -6,6 +6,8 @@
 
 // This task reads data from the MQTT Import input stream and saves the value
 
+#ifdef PLUGIN_BUILD_TESTING
+
 #define PLUGIN_037
 #define PLUGIN_ID_037         37
 #define PLUGIN_NAME_037       "MQTT Import"
@@ -479,3 +481,5 @@ float string2float(String myString) {
   value = atof(tmp);
   return value;
 }
+
+#endif
